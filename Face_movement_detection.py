@@ -21,20 +21,20 @@ class FaceMovementDetection:
         # self.training_images, self.training_img_names = self.Create_Image_Name_list()
 
     def GetTrainingData(self):
-        self.name = "santoshi kalaskar"
-        self.training_image_path = os.path.join("Training_images", self.name)
+        Name = "santoshi kalaskar"
+        training_image_path = os.path.join("Training_images", Name)
         # self.training_dataset_path = os.path.join("Training_dataset", self.name)
         self.training_images = []
         self.training_img_names = []
         self.training_face_encoding = []
-        self.myImageList = os.listdir(self.training_image_path)
-        for img_list in self.myImageList:
-            current_img = cv2.imread(f'{self.training_image_path}/{img_list}')
+        myImageList = os.listdir(training_image_path)
+        for img_list in myImageList:
+            current_img = cv2.imread(f'{training_image_path}/{img_list}')
+            current_img_path = os.path.join(training_image_path, img_list)
+            current_image = face_recognition.load_image_file(current_img_path)
             self.training_images.append(current_img)
             self.training_img_names.append(os.path.splitext(img_list)[0])
-            current_img_path = os.path.join(self.training_image_path, img_list)
-            self.Current_image = face_recognition.load_image_file(current_img_path)
-            self.training_face_encoding.append(face_recognition.face_encodings(self.Current_image)[0])
+            self.training_face_encoding.append(face_recognition.face_encodings(current_image)[0])
         # return self.training_images, self.training_img_names, self.training_face_encoding
 
     def StopExam(self,warning_msg):
@@ -49,7 +49,9 @@ class FaceMovementDetection:
 
             # Creating object of Brightness class
             # self.frame = cv2.convertScaleAbs(self.frame, alpha=1.5, beta=1)
-            ''' ---------------------------------------------------------------------'''
+            ''' ---------------------------------------------------------------------
+                    Face Identification Logic
+            ---------------------------------------------------------------------'''
             small_frame = cv2.resize(self.frame, (0, 0), fx=0.25, fy=0.25)
             # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
             rgb_small_frame = small_frame[:, :, ::-1]
@@ -81,15 +83,16 @@ class FaceMovementDetection:
                 cv2.rectangle(self.frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
                 cv2.putText(self.frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 1)
 
-            ''' ---------------------------------------------------------------------'''
-            self.gray_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-            self.faces = self.detector(self.gray_frame)
+            ''' ---------------------------------------------------------------------
+                                No Face Detected in Frame Logic
+            ---------------------------------------------------------------------'''
+            gray_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            self.faces = self.detector(gray_frame)
 
-            # if No Face Detected in Frame
             if not self.faces:
-                self.internal_no_face_count = self.internal_no_face_count + 1
+                self.internal_no_face_count += 1
                 if ( self.internal_no_face_count % (5 * self.fps) ) == 0:
-                    self.outer_no_face_counter = self.outer_no_face_counter + 1
+                    self.outer_no_face_counter += 1
                     if self.outer_no_face_counter == 1:
                         cv2.putText(self.frame, "No Face Detected..! " + str(self.internal_no_face_count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 90), 2)
                         msg = "No one Detected...! stop exam ..!"
@@ -98,14 +101,16 @@ class FaceMovementDetection:
                         self.StopExam(msg)
                         return 0
 
+            ''' ---------------------------------------------------------------------
+                                More than One Face Detected in Frame Logic
+             ---------------------------------------------------------------------'''
             self.internal_face_count = 0
             for face in self.faces:
-                # if count No of Faces more than one
-                self.internal_face_count = self.internal_face_count + 1
+                self.internal_face_count += 1
                 if self.internal_face_count > 1:
-                    self.internal_more_than_one_face_counter = self.internal_more_than_one_face_counter + 1
+                    self.internal_more_than_one_face_counter += 1
                     if (self.internal_more_than_one_face_counter % (5 * self.fps)) == 0:
-                        self.outer_more_than_one_face_counter = self.outer_more_than_one_face_counter + 1
+                        self.outer_more_than_one_face_counter += 1
                         if self.outer_more_than_one_face_counter == 3:
                             cv2.putText(self.frame, "Face Count: " + str(self.internal_face_count), (10, 150),cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
                             msg = "More than one Faces Detected...! stop exam ..!"
@@ -115,7 +120,11 @@ class FaceMovementDetection:
                             self.StopExam(msg)
                             return 0
 
-                self.landmarks = self.predictor(self.gray_frame, face)
+                ''' ---------------------------------------------------------------------
+                        looking at Left and Right side Detected in Frame Logic
+                ---------------------------------------------------------------------'''
+
+                self.landmarks = self.predictor(gray_frame, face)
                 Left_x_point_3 = self.landmarks.part(2).x
                 Left_y_point_3 = self.landmarks.part(2).y
                 Center_x_point_31 = self.landmarks.part(30).x
@@ -128,11 +137,10 @@ class FaceMovementDetection:
                 Left_side_percentage = int((Left_side_diff / Main_diff_3_to_15) * 100)
                 Right_side_percentage = int((Right_side_diff / Main_diff_3_to_15) * 100)
 
-                # if looking at left and right side
                 if Left_side_percentage < 20 or Right_side_percentage < 20 :
-                    self.internal_left_right_counter = self.internal_left_right_counter + 1
+                    self.internal_left_right_counter += 1
                     if (self.internal_left_right_counter % (5 * self.fps)) == 0:
-                        self.outer_left_right_counter = self.outer_left_right_counter + 1
+                        self.outer_left_right_counter += 1
                         if self.outer_left_right_counter == 3:
                             cv2.putText(self.frame, "Right side Distance: " + str(Left_side_percentage), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 0), 2)
                             cv2.putText(self.frame, "Left Side Distance: " + str(Right_side_percentage), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 100, 10), 2)
