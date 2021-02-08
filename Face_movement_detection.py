@@ -7,18 +7,26 @@ import face_recognition
 class FaceMovementDetection:
 
     def __init__(self):
-        self.video_cap = cv2.VideoCapture(0)
-        self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.InitializeCounterVeriable()
+        self.InitializeDlibLib()
+        self.GetWebCam()
+
+    def InitializeCounterVeriable(self):
         self.internal_no_face_count = 0
         self.outer_no_face_counter = 0
         self.internal_more_than_one_face_counter = 0
         self.outer_more_than_one_face_counter = 0
         self.internal_left_right_counter = 0
         self.outer_left_right_counter = 0
+
+    def InitializeDlibLib(self):
+        self.detector = dlib.get_frontal_face_detector()
+        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+
+    def GetWebCam(self):
+        self.video_cap = cv2.VideoCapture(0)
         self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
         print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
-        # self.training_images, self.training_img_names = self.Create_Image_Name_list()
 
     def GetTrainingData(self):
         Name = "santoshi kalaskar"
@@ -47,8 +55,12 @@ class FaceMovementDetection:
         while True:
             _, self.frame = self.video_cap.read()
 
+            ''' ---------------------------------------------------------------------
+                                Frame Brightness Logic
+            ---------------------------------------------------------------------'''
             # Creating object of Brightness class
-            # self.frame = cv2.convertScaleAbs(self.frame, alpha=1.5, beta=1)
+            # self.frame = cv2.convertScaleAbs(self.frame, alpha=1.0, beta=1)
+
             ''' ---------------------------------------------------------------------
                                 Face Identification Logic
             ---------------------------------------------------------------------'''
@@ -132,30 +144,30 @@ class FaceMovementDetection:
                 ---------------------------------------------------------------------'''
                 # Estimate the location of 68 co-ordinates to map facial points
                 self.landmarks = self.predictor(gray_frame, face)
-                Left_x_point_3 = self.landmarks.part(2).x
-                Left_y_point_3 = self.landmarks.part(2).y
-                Center_x_point_31 = self.landmarks.part(30).x
-                Center_y_point_31 = self.landmarks.part(30).y
-                Right_x_point_15 = self.landmarks.part(14).x
-                Right_y_point_15 = self.landmarks.part(14).y
+                left_x_point_3 = self.landmarks.part(2).x
+                left_y_point_3 = self.landmarks.part(2).y
+                center_x_point_31 = self.landmarks.part(30).x
+                center_y_point_31 = self.landmarks.part(30).y
+                right_x_point_15 = self.landmarks.part(14).x
+                right_y_point_15 = self.landmarks.part(14).y
                 # find Total distance
-                Main_diff_3_to_15 = int(np.sqrt((Left_x_point_3 - Right_x_point_15) ** 2 + (Left_y_point_3 - Right_y_point_15) ** 2))
+                main_diff_3_to_15 = int(np.sqrt((left_x_point_3 - right_x_point_15) ** 2 + (left_y_point_3 - right_y_point_15) ** 2))
                 # find Left side distance
-                Left_side_diff = int(np.sqrt((Center_x_point_31 - Left_x_point_3) ** 2 + (Center_y_point_31 - Left_y_point_3) ** 2))
+                left_side_diff = int(np.sqrt((center_x_point_31 - left_x_point_3) ** 2 + (center_y_point_31 - left_y_point_3) ** 2))
                 # find Right side distance
-                Right_side_diff = int(np.sqrt((Center_x_point_31 - Right_x_point_15) ** 2 + (Center_y_point_31 - Right_y_point_15) ** 2))
+                right_side_diff = int(np.sqrt((center_x_point_31 - right_x_point_15) ** 2 + (center_y_point_31 - right_y_point_15) ** 2))
                 # find Left side distance percentage(%)
-                Left_side_percentage = int((Left_side_diff / Main_diff_3_to_15) * 100)
+                left_side_percentage = int((left_side_diff / main_diff_3_to_15) * 100)
                 # find Right side distance percentage(%)
-                Right_side_percentage = int((Right_side_diff / Main_diff_3_to_15) * 100)
+                right_side_percentage = int((right_side_diff / main_diff_3_to_15) * 100)
                 # set threshold limit of left and right side %
-                if Left_side_percentage < 20 or Right_side_percentage < 20 :
+                if left_side_percentage < 20 or right_side_percentage < 20 :
                     self.internal_left_right_counter += 1
                     if (self.internal_left_right_counter % (5 * self.fps)) == 0:
                         self.outer_left_right_counter += 1
                         if self.outer_left_right_counter == 3:
-                            cv2.putText(self.frame, "Right side Distance: " + str(Left_side_percentage), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 0), 2)
-                            cv2.putText(self.frame, "Left Side Distance: " + str(Right_side_percentage), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 100, 10), 2)
+                            cv2.putText(self.frame, "Right side Distance: " + str(left_side_percentage), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 0), 2)
+                            cv2.putText(self.frame, "Left Side Distance: " + str(right_side_percentage), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 100, 10), 2)
                             msg = "Face Movement Detected...! stop exam ..!"
                             self.outer_left_right_counter = 0
                             self.internal_left_right_counter = 0
