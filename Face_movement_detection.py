@@ -50,12 +50,15 @@ class FaceMovementDetection:
             # Creating object of Brightness class
             # self.frame = cv2.convertScaleAbs(self.frame, alpha=1.5, beta=1)
             ''' ---------------------------------------------------------------------
-                    Face Identification Logic
+                                Face Identification Logic
             ---------------------------------------------------------------------'''
+            # Resize Frame in 1/4 size for better accuracy.
             small_frame = cv2.resize(self.frame, (0, 0), fx=0.25, fy=0.25)
             # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
             rgb_small_frame = small_frame[:, :, ::-1]
+            # find face locations
             face_locations = face_recognition.face_locations(rgb_small_frame)
+            # find face encodings
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
             face_names = []
@@ -66,6 +69,7 @@ class FaceMovementDetection:
                 # Or instead, use the known face with the smallest distance to the new face
                 face_distances = face_recognition.face_distance(self.training_face_encoding, face_encoding)
                 best_match_index = np.argmin(face_distances)
+                # get name of that matched face
                 if matches[best_match_index]:
                     name = self.training_img_names[best_match_index]
                 face_names.append(name)
@@ -79,16 +83,18 @@ class FaceMovementDetection:
                 left *= 4
                 # Draw a box around the face
                 cv2.rectangle(self.frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                # Draw a label with a name below the face
+                # Draw a box below face box
                 cv2.rectangle(self.frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+                # Draw a label with a name below the face
                 cv2.putText(self.frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 1)
 
             ''' ---------------------------------------------------------------------
                                 No Face Detected in Frame Logic
             ---------------------------------------------------------------------'''
+            # convert BGR frame to gray scale
             gray_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            # fetch faces from frame
             self.faces = self.detector(gray_frame)
-
             if not self.faces:
                 self.internal_no_face_count += 1
                 if ( self.internal_no_face_count % (5 * self.fps) ) == 0:
@@ -105,6 +111,7 @@ class FaceMovementDetection:
                                 More than One Face Detected in Frame Logic
              ---------------------------------------------------------------------'''
             self.internal_face_count = 0
+            # check for more than one face detected
             for face in self.faces:
                 self.internal_face_count += 1
                 if self.internal_face_count > 1:
@@ -123,7 +130,7 @@ class FaceMovementDetection:
                 ''' ---------------------------------------------------------------------
                         looking at Left and Right side Detected in Frame Logic
                 ---------------------------------------------------------------------'''
-
+                # Estimate the location of 68 co-ordinates to map facial points
                 self.landmarks = self.predictor(gray_frame, face)
                 Left_x_point_3 = self.landmarks.part(2).x
                 Left_y_point_3 = self.landmarks.part(2).y
@@ -131,12 +138,17 @@ class FaceMovementDetection:
                 Center_y_point_31 = self.landmarks.part(30).y
                 Right_x_point_15 = self.landmarks.part(14).x
                 Right_y_point_15 = self.landmarks.part(14).y
+                # find Total distance
                 Main_diff_3_to_15 = int(np.sqrt((Left_x_point_3 - Right_x_point_15) ** 2 + (Left_y_point_3 - Right_y_point_15) ** 2))
+                # find Left side distance
                 Left_side_diff = int(np.sqrt((Center_x_point_31 - Left_x_point_3) ** 2 + (Center_y_point_31 - Left_y_point_3) ** 2))
+                # find Right side distance
                 Right_side_diff = int(np.sqrt((Center_x_point_31 - Right_x_point_15) ** 2 + (Center_y_point_31 - Right_y_point_15) ** 2))
+                # find Left side distance percentage(%)
                 Left_side_percentage = int((Left_side_diff / Main_diff_3_to_15) * 100)
+                # find Right side distance percentage(%)
                 Right_side_percentage = int((Right_side_diff / Main_diff_3_to_15) * 100)
-
+                # set threshold limit of left and right side %
                 if Left_side_percentage < 20 or Right_side_percentage < 20 :
                     self.internal_left_right_counter += 1
                     if (self.internal_left_right_counter % (5 * self.fps)) == 0:
@@ -149,9 +161,10 @@ class FaceMovementDetection:
                             self.internal_left_right_counter = 0
                             self.StopExam(msg)
                             return 0
-
+            # show web-cam
             cv2.imshow("Web_cam_on", self.frame)
             escap_key = cv2.waitKey(1)
+            # if press Escape char then break loop
             if escap_key == 27:
                 cv2.destroyAllWindows()
                 break
