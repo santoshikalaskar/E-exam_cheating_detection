@@ -4,14 +4,14 @@ import dlib
 import os
 import face_recognition
 
-class FaceMovementDetection:
+class Face_Movement_Detection:
 
     def __init__(self):
-        self.InitializeCounterVeriable()
-        self.InitializeDlibLib()
-        self.GetWebCam()
+        self.Initialize_Counter_Veriable()
+        self.Initialize_Dlib_Lib()
+        self.Get_Web_Cam()
 
-    def InitializeCounterVeriable(self):
+    def Initialize_Counter_Veriable(self):
         self.internal_no_face_count = 0
         self.outer_no_face_counter = 0
         self.internal_more_than_one_face_counter = 0
@@ -19,18 +19,18 @@ class FaceMovementDetection:
         self.internal_left_right_counter = 0
         self.outer_left_right_counter = 0
 
-    def InitializeDlibLib(self):
+    def Initialize_Dlib_Lib(self):
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
-    def GetWebCam(self):
+    def Get_Web_Cam(self):
         self.video_cap = cv2.VideoCapture(0)
         self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
         print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
 
-    def GetTrainingData(self):
-        Name = "santoshi kalaskar"
-        training_image_path = os.path.join("Training_images", Name)
+    def Get_Training_Data(self):
+        name = "santoshi kalaskar"
+        training_image_path = os.path.join("Training_images", name)
         # self.training_dataset_path = os.path.join("Training_dataset", self.name)
         self.training_images = []
         self.training_img_names = []
@@ -45,12 +45,12 @@ class FaceMovementDetection:
             self.training_face_encoding.append(face_recognition.face_encodings(current_image)[0])
         # return self.training_images, self.training_img_names, self.training_face_encoding
 
-    def StopExam(self,warning_msg):
+    def Stop_Exam(self,warning_msg):
         print(warning_msg)
         cv2.destroyAllWindows()
         self.video_cap.release()
 
-    def StartWebCam(self):
+    def Start_Web_Cam(self):
 
         while True:
             _, self.frame = self.video_cap.read()
@@ -116,7 +116,7 @@ class FaceMovementDetection:
                         msg = "No one Detected...! stop exam ..!"
                         self.outer_no_face_counter = 0
                         self.internal_no_face_count = 0
-                        self.StopExam(msg)
+                        self.Stop_Exam(msg)
                         return 0
 
             ''' ---------------------------------------------------------------------
@@ -136,7 +136,7 @@ class FaceMovementDetection:
                             self.outer_more_than_one_face_counter = 0
                             self.internal_more_than_one_face_counter = 0
                             self.internal_face_count  = 0
-                            self.StopExam(msg)
+                            self.Stop_Exam(msg)
                             return 0
 
                 ''' ---------------------------------------------------------------------
@@ -171,7 +171,7 @@ class FaceMovementDetection:
                             msg = "Face Movement Detected...! stop exam ..!"
                             self.outer_left_right_counter = 0
                             self.internal_left_right_counter = 0
-                            self.StopExam(msg)
+                            self.Stop_Exam(msg)
                             return 0
             # show web-cam
             cv2.imshow("Web_cam_on", self.frame)
@@ -182,6 +182,6 @@ class FaceMovementDetection:
                 break
 
 if __name__ == "__main__":
-    FaceMovementDetection_obj = FaceMovementDetection()
-    FaceMovementDetection_obj.GetTrainingData()
-    FaceMovementDetection_obj.StartWebCam()
+    FaceMovementDetection_obj = Face_Movement_Detection()
+    FaceMovementDetection_obj.Get_Training_Data()
+    FaceMovementDetection_obj.Start_Web_Cam()
