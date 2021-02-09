@@ -6,11 +6,13 @@ try:
     import os
     import face_recognition
     import logger_hander
+    logger = logger_hander.set_logger()
+    logger.info("Import all library successfully..!")
 
 except ImportError as error:
-    print(error.__class__.__name__ + ": " + error.message)
+    logger.error(error.__class__.__name__ + ": " + error.message)
 except Exception as exception:
-    print(exception.__class__.__name__ + ": " + exception.message)
+    logger.error(exception.__class__.__name__ + ": " + exception.message)
 
 class Face_Movement_Detection:
 
@@ -37,7 +39,7 @@ class Face_Movement_Detection:
         try:
             self.detector = dlib.get_frontal_face_detector()
             self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-            logger.info(" Dlib Detector and predictor set...! ")
+            logger.info(" Dlib Detector and shape_predictor_68_face_landmarks shape predictor set...! ")
         except AttributeError as error:
             logger.error(error.__class__.__name__ + ": " + error.message)
         except ModuleNotFoundError as error:
@@ -48,9 +50,9 @@ class Face_Movement_Detection:
     def Get_Web_Cam(self):
         try:
             self.video_cap = cv2.VideoCapture(0)
-            logger.info(" got video camera...! ")
+            logger.info(" Got Video Camera...! ")
             self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
-            logger.info("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
+            logger.info(" Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
         except ModuleNotFoundError as error:
             logger.error(error.__class__.__name__ + ": " + error.message)
         except SystemError as error:
@@ -76,7 +78,7 @@ class Face_Movement_Detection:
                 self.training_images.append(current_img)
                 self.training_img_names.append(os.path.splitext(img_list)[0])
                 self.training_face_encoding.append(face_recognition.face_encodings(current_image)[0])
-                logger.info("Training Images and Training Face encodings done ...! ")
+                logger.info(" Training Images and Training Face encodings done ...! ")
             # return self.training_images, self.training_img_names, self.training_face_encoding
         except FileExistsError as error:
             logger.error(error.__class__.__name__ + ": " + error.message)
@@ -122,9 +124,9 @@ class Face_Movement_Detection:
                     self.internal_no_face_counter += 1
                     if ( self.internal_no_face_counter % (5 * self.fps) ) == 0:
                         self.outer_no_face_counter += 1
-                        if self.outer_no_face_counter == 1:
+                        if self.outer_no_face_counter == 3:
                             cv2.putText(self.frame, "No Face Detected..! " + str(self.internal_no_face_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 90), 2)
-                            msg = "No one Detected...! stop exam ..!"
+                            msg = " No one Detected...! stop exam ..!"
                             self.outer_no_face_counter = 0
                             self.internal_no_face_counter = 0
                             self.Stop_Exam(msg)
@@ -151,7 +153,7 @@ class Face_Movement_Detection:
                         matches = face_recognition.compare_faces(self.training_face_encoding, face_encoding)
                         # Or instead, use the known face with the smallest distance to the new face
                         face_distances = face_recognition.face_distance(self.training_face_encoding, face_encoding)
-                        if round(min(face_distances), 2) < 0.53:
+                        if round(min(face_distances), 2) < 0.58:
                             best_match_index = np.argmin(face_distances)
                             # get name of that matched face
                             if matches[best_match_index]:
@@ -161,10 +163,10 @@ class Face_Movement_Detection:
                         self.internal_unknown_face_counter += 1
                         if (self.internal_unknown_face_counter % (5 * self.fps)) == 0:
                             self.outer_unknown_face_counter += 1
-                            if self.outer_unknown_face_counter == 1:
+                            if self.outer_unknown_face_counter == 3:
                                 cv2.putText(self.frame, "Unknown Face Detected..! " + str(self.internal_no_face_counter),
                                             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 90), 2)
-                                msg = "Unknown one Detected...! stop exam ..!"
+                                msg = " Unknown one Detected...! stop exam ..!"
                                 self.outer_unknown_face_counter = 0
                                 self.internal_unknown_face_counter = 0
                                 self.Stop_Exam(msg)
@@ -233,7 +235,7 @@ class Face_Movement_Detection:
                                 if self.outer_left_right_counter == 3:
                                     cv2.putText(self.frame, "Right side Distance: " + str(left_side_percentage), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 0), 2)
                                     cv2.putText(self.frame, "Left Side Distance: " + str(right_side_percentage), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 100, 10), 2)
-                                    msg = "Face Movement Detected...! stop exam ..!"
+                                    msg = " Face Movement Detected...! stop exam ..!"
                                     self.outer_left_right_counter = 0
                                     self.internal_left_right_counter = 0
                                     self.Stop_Exam(msg)
@@ -244,7 +246,7 @@ class Face_Movement_Detection:
                 # if press Escape char then break loop
                 if escap_key == 27:
                     cv2.destroyAllWindows()
-                    logger.info(" Frame released...! ")
+                    logger.info(" Video camera Frame released...! ")
                     break
 
         except ModuleNotFoundError as error:
@@ -257,7 +259,7 @@ class Face_Movement_Detection:
             logger.error(exception.__class__.__name__ + ": " + exception.message)
 
 if __name__ == "__main__":
-    logger = logger_hander.set_logger()
+
     FaceMovementDetection_obj = Face_Movement_Detection()
     FaceMovementDetection_obj.Get_Training_Data()
     FaceMovementDetection_obj.Start_Web_Cam()
