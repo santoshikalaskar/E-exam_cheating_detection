@@ -5,6 +5,8 @@ try:
     import dlib
     import os
     import face_recognition
+    import logger_hander
+
 except ImportError as error:
     print(error.__class__.__name__ + ": " + error.message)
 except Exception as exception:
@@ -28,33 +30,35 @@ class Face_Movement_Detection:
             self.internal_unknown_face_counter = 0
             self.outer_unknown_face_counter = 0
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
 
     def Initialize_Dlib_Lib(self):
         try:
             self.detector = dlib.get_frontal_face_detector()
             self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+            logger.info(" Dlib Detector and predictor set...! ")
         except AttributeError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except ModuleNotFoundError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
     def Get_Web_Cam(self):
         try:
             self.video_cap = cv2.VideoCapture(0)
+            logger.info(" got video camera...! ")
             self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
-            print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
+            logger.info("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
         except ModuleNotFoundError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except SystemError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except InterruptedError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
     def Get_Training_Data(self):
         try:
@@ -72,27 +76,28 @@ class Face_Movement_Detection:
                 self.training_images.append(current_img)
                 self.training_img_names.append(os.path.splitext(img_list)[0])
                 self.training_face_encoding.append(face_recognition.face_encodings(current_image)[0])
+                logger.info("Training Images and Training Face encodings done ...! ")
             # return self.training_images, self.training_img_names, self.training_face_encoding
         except FileExistsError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except FileNotFoundError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
     def Stop_Exam(self,warning_msg):
         try:
-            print(warning_msg)
+            logger.info(warning_msg)
             cv2.destroyAllWindows()
             self.video_cap.release()
         except ModuleNotFoundError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except SystemError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except InterruptedError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
     def Start_Web_Cam(self):
         try:
@@ -239,18 +244,20 @@ class Face_Movement_Detection:
                 # if press Escape char then break loop
                 if escap_key == 27:
                     cv2.destroyAllWindows()
+                    logger.info(" Frame released...! ")
                     break
 
         except ModuleNotFoundError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except SystemError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except InterruptedError as error:
-            print(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + error.message)
         except Exception as exception:
-            print(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(exception.__class__.__name__ + ": " + exception.message)
 
 if __name__ == "__main__":
+    logger = logger_hander.set_logger()
     FaceMovementDetection_obj = Face_Movement_Detection()
     FaceMovementDetection_obj.Get_Training_Data()
     FaceMovementDetection_obj.Start_Web_Cam()
