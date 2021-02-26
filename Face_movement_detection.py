@@ -10,9 +10,9 @@ try:
     logger.info("Import all library successfully..!")
 
 except ImportError as error:
-    logger.error(error.__class__.__name__ + ": " + error.message)
+    logger.error(error.__class__.__name__ + ": " + str(error))
 except Exception as exception:
-    logger.error(exception.__class__.__name__ + ": " + exception.message)
+    logger.error(" Something went Wrong while importing module : " + str(exception))
 
 class Face_Movement_Detection:
 
@@ -20,6 +20,7 @@ class Face_Movement_Detection:
         self.Initialize_Counter_Veriable()
         self.Initialize_Dlib_Lib()
         self.Get_Web_Cam()
+        self.Get_Training_Data()
 
     def Initialize_Counter_Veriable(self):
         try:
@@ -32,7 +33,7 @@ class Face_Movement_Detection:
             self.internal_unknown_face_counter = 0
             self.outer_unknown_face_counter = 0
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong while Initializing counter variables: " + str(exception))
 
 
     def Initialize_Dlib_Lib(self):
@@ -41,11 +42,11 @@ class Face_Movement_Detection:
             self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
             logger.info(" Dlib Detector and shape_predictor_68_face_landmarks shape predictor set...! ")
         except AttributeError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except ModuleNotFoundError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong while Initalizing dlib library : " + str(exception))
 
     def Get_Web_Cam(self):
         try:
@@ -54,13 +55,13 @@ class Face_Movement_Detection:
             self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
             logger.info(" Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(self.fps))
         except ModuleNotFoundError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except SystemError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except InterruptedError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong at fetching web cam : " + str(exception))
 
     def Get_Training_Data(self):
         try:
@@ -81,25 +82,25 @@ class Face_Movement_Detection:
                 logger.info(" Training Images and Training Face encodings done ...! ")
             # return self.training_images, self.training_img_names, self.training_face_encoding
         except FileExistsError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except FileNotFoundError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong at initializing training dataset: " + str(exception))
 
     def Stop_Exam(self,warning_msg):
         try:
             logger.info(warning_msg)
-            cv2.destroyAllWindows()
+            # cv2.destroyAllWindows()
             self.video_cap.release()
         except ModuleNotFoundError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except SystemError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except InterruptedError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong while stopping exam : " + str(exception))
 
     def Start_Web_Cam(self):
         try:
@@ -124,7 +125,7 @@ class Face_Movement_Detection:
                     self.internal_no_face_counter += 1
                     if ( self.internal_no_face_counter % (5 * self.fps) ) == 0:
                         self.outer_no_face_counter += 1
-                        if self.outer_no_face_counter == 3:
+                        if self.outer_no_face_counter == 1:
                             cv2.putText(self.frame, "No Face Detected..! " + str(self.internal_no_face_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 90), 2)
                             msg = " No one Detected...! stop exam ..!"
                             self.outer_no_face_counter = 0
@@ -163,7 +164,7 @@ class Face_Movement_Detection:
                         self.internal_unknown_face_counter += 1
                         if (self.internal_unknown_face_counter % (5 * self.fps)) == 0:
                             self.outer_unknown_face_counter += 1
-                            if self.outer_unknown_face_counter == 3:
+                            if self.outer_unknown_face_counter == 1:
                                 cv2.putText(self.frame, "Unknown Face Detected..! " + str(self.internal_no_face_counter),
                                             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 90), 2)
                                 msg = " Unknown one Detected...! stop exam ..!"
@@ -199,7 +200,7 @@ class Face_Movement_Detection:
                                 self.outer_more_than_one_face_counter += 1
                                 if self.outer_more_than_one_face_counter == 3:
                                     cv2.putText(self.frame, "Face Count: " + str(self.internal_face_count), (10, 150),cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                                    msg = "More than one Faces Detected...! stop exam ..!"
+                                    msg = " More than one Faces Detected...! stop exam ..!"
                                     self.outer_more_than_one_face_counter = 0
                                     self.internal_more_than_one_face_counter = 0
                                     self.internal_face_count  = 0
@@ -232,7 +233,7 @@ class Face_Movement_Detection:
                             self.internal_left_right_counter += 1
                             if (self.internal_left_right_counter % (5 * self.fps)) == 0:
                                 self.outer_left_right_counter += 1
-                                if self.outer_left_right_counter == 3:
+                                if self.outer_left_right_counter == 1:
                                     cv2.putText(self.frame, "Right side Distance: " + str(left_side_percentage), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 210, 0), 2)
                                     cv2.putText(self.frame, "Left Side Distance: " + str(right_side_percentage), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 100, 10), 2)
                                     msg = " Face Movement Detected...! stop exam ..!"
@@ -240,26 +241,15 @@ class Face_Movement_Detection:
                                     self.internal_left_right_counter = 0
                                     self.Stop_Exam(msg)
                                     break
-                # show web-cam
-                cv2.imshow("Web_cam_on", self.frame)
-                escap_key = cv2.waitKey(1)
-                # if press Escape char then break loop
-                if escap_key == 27:
-                    cv2.destroyAllWindows()
-                    logger.info(" Video camera Frame released...! ")
-                    break
+                ret, jpeg = cv2.imencode('.jpg', self.frame)
+                return jpeg.tobytes()
 
         except ModuleNotFoundError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except SystemError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except InterruptedError as error:
-            logger.error(error.__class__.__name__ + ": " + error.message)
+            logger.error(error.__class__.__name__ + ": " + str(error))
         except Exception as exception:
-            logger.error(exception.__class__.__name__ + ": " + exception.message)
+            logger.error(" Something went Wrong : " + str(exception))
 
-if __name__ == "__main__":
-
-    FaceMovementDetection_obj = Face_Movement_Detection()
-    FaceMovementDetection_obj.Get_Training_Data()
-    FaceMovementDetection_obj.Start_Web_Cam()
