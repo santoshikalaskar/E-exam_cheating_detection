@@ -14,14 +14,16 @@ def set_logger():
 
     if not os.path.exists('logs'):
         os.makedirs('logs')
-    else:
-        file_handler = logging.FileHandler('logs/chatbot.log')
-        file_handler.setLevel(logging.ERROR)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+    
+    file_handler = logging.FileHandler('logs/web_cam.log')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
     stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
     return logger
+
